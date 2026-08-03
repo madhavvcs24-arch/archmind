@@ -13,6 +13,8 @@ import com.archmind.backend.common.response.ApiResponse;
 import com.archmind.backend.project.dto.CreateProjectRequest;
 import com.archmind.backend.project.service.ProjectService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/v1/projects")
 public class ProjectController {
@@ -25,9 +27,10 @@ public class ProjectController {
 
     // CREATE PROJECT
     @PostMapping
-    public ApiResponse createProject(@RequestBody CreateProjectRequest request) {
+    public ApiResponse createProject(@Valid @RequestBody CreateProjectRequest request) {
 
         return projectService.createProject(request);
+
     }
 
     // GET ALL PROJECTS
@@ -45,9 +48,9 @@ public class ProjectController {
     @PutMapping("/{id}")
     public ApiResponse updateProject(
             @PathVariable Long id,
-            @RequestBody CreateProjectRequest request) {
+            @Valid @RequestBody CreateProjectRequest request) {
 
-        return projectService.updateProject(id, request);
+                return projectService.updateProject(id, request);
 
     }
     @DeleteMapping("/{id}")

@@ -1,19 +1,27 @@
 package com.archmind.backend.project.service;
 
-import org.springframework.stereotype.Service;
-
 import com.archmind.backend.common.response.ApiResponse;
 import com.archmind.backend.project.dto.CreateProjectRequest;
+import com.archmind.backend.project.dto.ProjectResponse;
 import com.archmind.backend.project.entity.Project;
 import com.archmind.backend.project.repository.ProjectRepository;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final ModelMapper modelMapper;
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository,
+                          ModelMapper modelMapper) {
+
         this.projectRepository = projectRepository;
+        this.modelMapper = modelMapper;
     }
 
     // CREATE PROJECT
@@ -27,22 +35,32 @@ public class ProjectService {
 
         Project savedProject = projectRepository.save(project);
 
+        ProjectResponse response =
+                modelMapper.map(savedProject, ProjectResponse.class);
+
         return new ApiResponse(
                 true,
                 "Project created successfully",
-                savedProject
+                response
         );
     }
 
     // GET ALL PROJECTS
     public ApiResponse getAllProjects() {
 
+        List<ProjectResponse> response = projectRepository.findAll()
+                .stream()
+                .map(project -> modelMapper.map(project, ProjectResponse.class))
+                .collect(Collectors.toList());
+
         return new ApiResponse(
                 true,
                 "Projects fetched successfully",
-                projectRepository.findAll()
+                response
         );
     }
+
+    // GET PROJECT BY ID
     public ApiResponse getProjectById(Long id) {
 
         Project project = projectRepository.findById(id).orElse(null);
@@ -55,12 +73,17 @@ public class ProjectService {
             );
         }
 
+        ProjectResponse response =
+                modelMapper.map(project, ProjectResponse.class);
+
         return new ApiResponse(
                 true,
                 "Project found",
-                project
+                response
         );
     }
+
+    // UPDATE PROJECT
     public ApiResponse updateProject(Long id, CreateProjectRequest request) {
 
         Project project = projectRepository.findById(id).orElse(null);
@@ -79,12 +102,17 @@ public class ProjectService {
 
         Project updatedProject = projectRepository.save(project);
 
+        ProjectResponse response =
+                modelMapper.map(updatedProject, ProjectResponse.class);
+
         return new ApiResponse(
                 true,
                 "Project updated successfully",
-                updatedProject
+                response
         );
     }
+
+    // DELETE PROJECT
     public ApiResponse deleteProject(Long id) {
 
         Project project = projectRepository.findById(id).orElse(null);

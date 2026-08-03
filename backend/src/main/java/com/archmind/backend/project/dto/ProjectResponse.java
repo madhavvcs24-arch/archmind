@@ -1,22 +1,21 @@
 package com.archmind.backend.project.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+public class ProjectResponse {
 
-public class CreateProjectRequest {
-
-    @NotBlank(message = "Project name is required")
-    @Size(max = 100, message = "Project name cannot exceed 100 characters")
+    private Long id;
     private String name;
-
-    @NotBlank(message = "Project description is required")
-    @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
-
-    @NotBlank(message = "GitHub URL is required")
     private String githubUrl;
 
-    public CreateProjectRequest() {
+    public ProjectResponse() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
