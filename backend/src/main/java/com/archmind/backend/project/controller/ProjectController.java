@@ -35,17 +35,28 @@ public class ProjectController {
     }
 
     // GET ALL PROJECTS
-    // GET ALL PROJECTS
     @GetMapping
     public ApiResponse getAllProjects(
 
+            @RequestParam(defaultValue = "") String keyword,
+
             @RequestParam(defaultValue = "0") int page,
 
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+
+            @RequestParam(defaultValue = "desc") String sortDir
 
     ) {
 
-        return projectService.getAllProjects(page, size);
+        return projectService.getAllProjects(
+                keyword,
+                page,
+                size,
+                sortBy,
+                sortDir
+        );
     }
     @GetMapping("/{id}")
     public ApiResponse getProjectById(@PathVariable Long id) {

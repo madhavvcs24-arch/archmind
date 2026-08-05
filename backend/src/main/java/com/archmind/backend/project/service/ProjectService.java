@@ -5,6 +5,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.archmind.backend.common.response.ApiResponse;
@@ -47,13 +48,31 @@ public class ProjectService {
         );
     }
 
-    // GET ALL PROJECTS
-    // GET ALL PROJECTS (PAGINATION)
-        public ApiResponse getAllProjects(int page, int size) {
+    // GET ALL PROJECTS (SEARCH + SORT + PAGINATION)
+        public ApiResponse getAllProjects(
+                String keyword,
+                int page,
+                int size,
+                String sortBy,
+                String sortDir
+        ) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
 
-        Page<Project> projectPage = projectRepository.findAll(pageable);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Project> projectPage;
+
+        if (keyword == null || keyword.isBlank()) {
+                projectPage = projectRepository.findAll(pageable);
+        } else {
+                projectPage = projectRepository.findByNameContainingIgnoreCase(
+                        keyword,
+                        pageable
+                );
+        }
 
         List<ProjectResponse> projects = projectPage
                 .getContent()
