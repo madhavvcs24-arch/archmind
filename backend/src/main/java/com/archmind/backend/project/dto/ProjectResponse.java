@@ -1,11 +1,13 @@
 package com.archmind.backend.project.dto;
-
+import java.time.LocalDateTime;
 public class ProjectResponse {
 
     private Long id;
     private String name;
     private String description;
     private String githubUrl;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public ProjectResponse() {
     }
@@ -40,5 +42,20 @@ public class ProjectResponse {
 
     public void setGithubUrl(String githubUrl) {
         this.githubUrl = githubUrl;
+    }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
