@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.archmind.backend.common.response.ApiResponse;
@@ -34,10 +35,17 @@ public class ProjectController {
     }
 
     // GET ALL PROJECTS
+    // GET ALL PROJECTS
     @GetMapping
-    public ApiResponse getAllProjects() {
+    public ApiResponse getAllProjects(
 
-        return projectService.getAllProjects();
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size
+
+    ) {
+
+        return projectService.getAllProjects(page, size);
     }
     @GetMapping("/{id}")
     public ApiResponse getProjectById(@PathVariable Long id) {

@@ -1,15 +1,17 @@
 package com.archmind.backend.project.service;
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import com.archmind.backend.common.response.ApiResponse;
 import com.archmind.backend.project.dto.CreateProjectRequest;
 import com.archmind.backend.project.dto.ProjectResponse;
 import com.archmind.backend.project.entity.Project;
 import com.archmind.backend.project.repository.ProjectRepository;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -46,19 +48,25 @@ public class ProjectService {
     }
 
     // GET ALL PROJECTS
-    public ApiResponse getAllProjects() {
+    // GET ALL PROJECTS (PAGINATION)
+        public ApiResponse getAllProjects(int page, int size) {
 
-        List<ProjectResponse> response = projectRepository.findAll()
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Project> projectPage = projectRepository.findAll(pageable);
+
+        List<ProjectResponse> projects = projectPage
+                .getContent()
                 .stream()
                 .map(project -> modelMapper.map(project, ProjectResponse.class))
-                .collect(Collectors.toList());
+                .toList();
 
         return new ApiResponse(
                 true,
                 "Projects fetched successfully",
-                response
+                projects
         );
-    }
+        }
 
     // GET PROJECT BY ID
     public ApiResponse getProjectById(Long id) {
