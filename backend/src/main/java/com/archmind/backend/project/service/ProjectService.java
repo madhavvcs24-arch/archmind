@@ -13,6 +13,7 @@ import com.archmind.backend.project.dto.CreateProjectRequest;
 import com.archmind.backend.project.dto.ProjectResponse;
 import com.archmind.backend.project.entity.Project;
 import com.archmind.backend.project.repository.ProjectRepository;
+import com.archmind.backend.user.entity.User;
 
 @Service
 public class ProjectService {
@@ -28,13 +29,15 @@ public class ProjectService {
     }
 
     // CREATE PROJECT
-    public ApiResponse createProject(CreateProjectRequest request) {
+    public ApiResponse createProject(
+        CreateProjectRequest request, User owner){
 
         Project project = new Project();
 
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         project.setGithubUrl(request.getGithubUrl());
+        project.setOwner(owner);
 
         Project savedProject = projectRepository.save(project);
 

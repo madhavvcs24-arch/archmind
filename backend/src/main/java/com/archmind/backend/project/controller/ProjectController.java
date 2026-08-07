@@ -1,5 +1,6 @@
 package com.archmind.backend.project.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,25 +14,40 @@ import org.springframework.web.bind.annotation.RestController;
 import com.archmind.backend.common.response.ApiResponse;
 import com.archmind.backend.project.dto.CreateProjectRequest;
 import com.archmind.backend.project.service.ProjectService;
+import com.archmind.backend.user.entity.User;
+import com.archmind.backend.user.repository.UserRepository;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/projects")
 public class ProjectController {
-
+    private final UserRepository userRepository;
     private final ProjectService projectService;
 
-    public ProjectController(ProjectService projectService) {
-        this.projectService = projectService;
-    }
+    public ProjectController(
+        ProjectService projectService,
+        UserRepository userRepository
+) {
+    this.projectService = projectService;
+    this.userRepository = userRepository;
+}
 
     // CREATE PROJECT
     @PostMapping
-    public ApiResponse createProject(@Valid @RequestBody CreateProjectRequest request) {
+    public ApiResponse createProject(
+            @Valid @RequestBody CreateProjectRequest request,
+            Authentication authentication
+    ) {
 
-        return projectService.createProject(request);
+        String email = authentication.getName();
 
+        User currentUser = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Authenticated user not found"));
+
+        return projectService.createProject(request, currentUser);
     }
 
     // GET ALL PROJECTS
