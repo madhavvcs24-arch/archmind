@@ -1,0 +1,41 @@
+package com.archmind.backend.analysis.dependency;
+
+public class DependencyEdge {
+
+    private String source;
+    private String target;
+    private String type;
+
+    public DependencyEdge() {
+    }
+
+    public DependencyEdge(String source, String target, String type) {
+        this.source = source;
+        this.target = target;
+        this.type = type;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+}

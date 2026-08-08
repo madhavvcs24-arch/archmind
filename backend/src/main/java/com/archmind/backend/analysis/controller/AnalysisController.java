@@ -11,22 +11,27 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.archmind.backend.analysis.dto.AnalysisResult;
+import com.archmind.backend.analysis.graph.ArchitectureGraph;
 import com.archmind.backend.analysis.service.AnalysisService;
 import com.archmind.backend.analysis.service.ZipExtractorService;
+import com.archmind.backend.visualisation.dto.MermaidResponse;
+import com.archmind.backend.visualisation.service.MermaidService;
 
 @RestController
 @RequestMapping("/api/v1/analysis")
 public class AnalysisController {
-
+    private final MermaidService mermaidService;
     private final AnalysisService analysisService;
     private final ZipExtractorService zipExtractorService;
 
     public AnalysisController(
-            AnalysisService analysisService,
-            ZipExtractorService zipExtractorService) {
+        AnalysisService analysisService,
+        ZipExtractorService zipExtractorService,
+        MermaidService mermaidService) {
 
         this.analysisService = analysisService;
         this.zipExtractorService = zipExtractorService;
+        this.mermaidService = mermaidService;
     }
 
     @PostMapping(
@@ -40,5 +45,21 @@ public class AnalysisController {
         Path projectDirectory = zipExtractorService.extract(file);
 
         return analysisService.analyzeProject(projectDirectory);
+    }
+    @PostMapping(
+        value = "/diagram",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public MermaidResponse generateDiagram(
+        @RequestParam("file") MultipartFile file)
+        throws IOException {
+
+        Path projectDirectory = zipExtractorService.extract(file);
+
+        ArchitectureGraph graph =
+                analysisService.buildArchitectureGraph(projectDirectory);
+
+        String diagram = mermaidService.generate(graph);
+
+        return new MermaidResponse(diagram);
     }
 }

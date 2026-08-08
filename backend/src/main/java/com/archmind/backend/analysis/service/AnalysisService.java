@@ -2,11 +2,15 @@ package com.archmind.backend.analysis.service;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.archmind.backend.analysis.dependency.DependencyEdge;
 import com.archmind.backend.analysis.dto.AnalysisResult;
+import com.archmind.backend.analysis.dto.DependencyGraphResponse;
+import com.archmind.backend.analysis.dto.DependencyResponse;
 import com.archmind.backend.analysis.graph.ArchitectureGraph;
 import com.archmind.backend.analysis.metrics.ArchitectureMetrics;
 import com.archmind.backend.analysis.parser.ArchitectureParser;
@@ -26,10 +30,11 @@ public class AnalysisService {
         this.fileReaderService = fileReaderService;
     }
 
-    // Existing method (keep it)
-    public AnalysisResult analyze(String sourceCode) {
+    public AnalysisResult analyzeProject(Path projectRoot) throws IOException {
 
-        ArchitectureGraph graph = parser.parse(sourceCode);
+        List<Path> javaFiles = scannerService.findJavaFiles(projectRoot);
+
+        ArchitectureGraph graph = buildArchitectureGraph(projectRoot);
 
         return new AnalysisResult(
                 metrics.getPackageCount(graph),
@@ -37,9 +42,24 @@ public class AnalysisService {
                 metrics.averageClassesPerPackage(graph)
         );
     }
+    public DependencyGraphResponse getDependencyGraph(ArchitectureGraph graph) {
 
-    // NEW METHOD
-    public AnalysisResult analyzeProject(Path projectRoot) throws IOException {
+        ArrayList<DependencyResponse> responses = new ArrayList<>();
+
+        for (DependencyEdge edge : graph.getDependencies()) {
+
+            responses.add(
+                    new DependencyResponse(
+                            edge.getSource(),
+                            edge.getTarget(),
+                            edge.getType()
+                    )
+            );
+        }
+
+        return new DependencyGraphResponse(responses);
+    }
+    public ArchitectureGraph buildArchitectureGraph(Path projectRoot) throws IOException {
 
         List<Path> javaFiles = scannerService.findJavaFiles(projectRoot);
 
@@ -49,15 +69,9 @@ public class AnalysisService {
 
             String source = fileReaderService.readFile(file);
 
-            ArchitectureGraph fileGraph = parser.parse(source);
-
-            fileGraph.getPackages().forEach(graph::addPackage);
+            parser.parse(source, graph);
         }
 
-        return new AnalysisResult(
-                metrics.getPackageCount(graph),
-                metrics.getClassCount(graph),
-                metrics.averageClassesPerPackage(graph)
-        );
+        return graph;
     }
 }

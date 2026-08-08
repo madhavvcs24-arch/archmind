@@ -2,6 +2,7 @@ package com.archmind.backend.analysis.parser;
 
 import java.util.List;
 
+import com.archmind.backend.analysis.dependency.DependencyBuilder;
 import com.archmind.backend.analysis.detector.ImportDetector;
 import com.archmind.backend.analysis.detector.InheritanceDetector;
 import com.archmind.backend.analysis.detector.InterfaceDetector;
@@ -16,27 +17,21 @@ public class ArchitectureParser {
     private final InheritanceDetector inheritanceDetector = new InheritanceDetector();
     private final InterfaceDetector interfaceDetector = new InterfaceDetector();
     private final ImportDetector importDetector = new ImportDetector();
+    private final DependencyBuilder dependencyBuilder = new DependencyBuilder();
 
-    public ArchitectureGraph parse(String sourceCode) {
+    public void parse(String sourceCode, ArchitectureGraph graph) {
 
-        ArchitectureGraph graph = new ArchitectureGraph();
-
-        // Extract package
         String packageName = packageExtractor.extractPackage(sourceCode);
-
-        // Extract class
         String className = classExtractor.extractClassName(sourceCode);
 
-        // Detect inheritance
         String parentClass = inheritanceDetector.detectParentClass(sourceCode);
 
-        // Detect interfaces
-        List<String> interfaces = interfaceDetector.detectInterfaces(sourceCode);
+        List<String> interfaces =
+                interfaceDetector.detectInterfaces(sourceCode);
 
-        // Detect imports
-        List<String> imports = importDetector.detectImports(sourceCode);
+        List<String> imports =
+                importDetector.detectImports(sourceCode);
 
-        // Find package
         PackageNode packageNode = graph.findPackage(packageName);
 
         if (packageNode == null) {
@@ -44,22 +39,19 @@ public class ArchitectureParser {
             graph.addPackage(packageNode);
         }
 
-        // Create class node
         ClassNode classNode = new ClassNode(className, packageName);
         classNode.setParentClass(parentClass);
 
-        // Store interfaces
         for (String interfaceName : interfaces) {
             classNode.addImplementedInterface(interfaceName);
         }
 
-        // Store imports
         for (String importName : imports) {
             classNode.addImport(importName);
         }
 
         packageNode.addClass(classNode);
 
-        return graph;
+        dependencyBuilder.buildDependencies(graph, classNode);
     }
 }
