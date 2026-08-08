@@ -4,6 +4,7 @@ public class ClassNode {
 
     private String className;
     private String packageName;
+    private String parentClass;
 
     public ClassNode() {
     }
@@ -27,5 +28,13 @@ public class ClassNode {
 
     public void setPackageName(String packageName) {
         this.packageName = packageName;
+    }
+
+    public String getParentClass() {
+        return parentClass;
+    }
+
+    public void setParentClass(String parentClass) {
+        this.parentClass = parentClass;
     }
 }

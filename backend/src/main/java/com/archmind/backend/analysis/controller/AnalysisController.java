@@ -1,25 +1,44 @@
 package com.archmind.backend.analysis.controller;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.archmind.backend.analysis.dto.AnalysisResult;
 import com.archmind.backend.analysis.service.AnalysisService;
+import com.archmind.backend.analysis.service.ZipExtractorService;
 
 @RestController
-@RequestMapping("/api/analysis")
+@RequestMapping("/api/v1/analysis")
 public class AnalysisController {
 
     private final AnalysisService analysisService;
+    private final ZipExtractorService zipExtractorService;
 
-    public AnalysisController(AnalysisService analysisService) {
+    public AnalysisController(
+            AnalysisService analysisService,
+            ZipExtractorService zipExtractorService) {
+
         this.analysisService = analysisService;
+        this.zipExtractorService = zipExtractorService;
     }
 
-    @PostMapping
-    public AnalysisResult analyze(@RequestBody String sourceCode) {
-        return analysisService.analyze(sourceCode);
+    @PostMapping(
+            value = "/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public AnalysisResult analyzeProject(
+            @RequestParam("file") MultipartFile file)
+            throws IOException {
+
+        Path projectDirectory = zipExtractorService.extract(file);
+
+        return analysisService.analyzeProject(projectDirectory);
     }
 }

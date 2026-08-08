@@ -22,21 +22,16 @@ public class ArchitectureGraph {
         return packages.size();
     }
 
-    /**
-     * Returns an existing package if found,
-     * otherwise creates a new one.
-     */
-    public PackageNode getOrCreatePackage(String packageName) {
+    public PackageNode findPackage(String packageName) {
 
         for (PackageNode packageNode : packages) {
+
             if (packageNode.getName().equals(packageName)) {
                 return packageNode;
             }
+
         }
 
-        PackageNode newPackage = new PackageNode(packageName);
-        packages.add(newPackage);
-
-        return newPackage;
+        return null;
     }
 }
