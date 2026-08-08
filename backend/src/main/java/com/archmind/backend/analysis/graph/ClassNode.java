@@ -1,10 +1,16 @@
 package com.archmind.backend.analysis.graph;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClassNode {
 
     private String className;
     private String packageName;
     private String parentClass;
+
+    private final List<String> implementedInterfaces = new ArrayList<>();
+    private final List<String> imports = new ArrayList<>();
 
     public ClassNode() {
     }
@@ -36,5 +42,21 @@ public class ClassNode {
 
     public void setParentClass(String parentClass) {
         this.parentClass = parentClass;
+    }
+
+    public List<String> getImplementedInterfaces() {
+        return implementedInterfaces;
+    }
+
+    public void addImplementedInterface(String interfaceName) {
+        implementedInterfaces.add(interfaceName);
+    }
+
+    public List<String> getImports() {
+        return imports;
+    }
+
+    public void addImport(String importName) {
+        imports.add(importName);
     }
 }
