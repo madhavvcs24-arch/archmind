@@ -27,4 +27,11 @@ public class InterfaceDetector {
 
         return interfaces;
     }
+    private static final Pattern INTERFACE_PATTERN =
+        Pattern.compile("\\binterface\\s+\\w+");
+
+    public boolean isInterface(String sourceCode) {
+
+        return INTERFACE_PATTERN.matcher(sourceCode).find();
+    }
 }

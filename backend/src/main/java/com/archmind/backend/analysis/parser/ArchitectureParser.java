@@ -11,7 +11,7 @@ import com.archmind.backend.analysis.graph.ClassNode;
 import com.archmind.backend.analysis.graph.PackageNode;
 
 public class ArchitectureParser {
-
+    
     private final PackageExtractor packageExtractor = new PackageExtractor();
     private final ClassExtractor classExtractor = new ClassExtractor();
     private final InheritanceDetector inheritanceDetector = new InheritanceDetector();
@@ -50,7 +50,11 @@ public class ArchitectureParser {
             classNode.addImport(importName);
         }
 
-        packageNode.addClass(classNode);
+        ClassNode node = new ClassNode(className, packageName);
+
+        node.setInterface(interfaceDetector.isInterface(sourceCode));
+
+        packageNode.addClass(node);
 
         dependencyBuilder.buildDependencies(graph, classNode);
     }

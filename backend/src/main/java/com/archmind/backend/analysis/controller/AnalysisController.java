@@ -11,27 +11,31 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.archmind.backend.analysis.dto.AnalysisResult;
+import com.archmind.backend.analysis.dto.QualityResponse;
 import com.archmind.backend.analysis.graph.ArchitectureGraph;
+import com.archmind.backend.analysis.quality.ArchitectureQualityAnalyzer;
+import com.archmind.backend.analysis.quality.QualityReport;
 import com.archmind.backend.analysis.service.AnalysisService;
 import com.archmind.backend.analysis.service.ZipExtractorService;
 import com.archmind.backend.visualisation.dto.MermaidResponse;
 import com.archmind.backend.visualisation.service.MermaidService;
-
 @RestController
 @RequestMapping("/api/v1/analysis")
 public class AnalysisController {
     private final MermaidService mermaidService;
     private final AnalysisService analysisService;
     private final ZipExtractorService zipExtractorService;
-
+    private final ArchitectureQualityAnalyzer qualityAnalyzer;
     public AnalysisController(
-        AnalysisService analysisService,
-        ZipExtractorService zipExtractorService,
-        MermaidService mermaidService) {
+            AnalysisService analysisService,
+            ZipExtractorService zipExtractorService,
+            MermaidService mermaidService,
+            ArchitectureQualityAnalyzer qualityAnalyzer) {
 
         this.analysisService = analysisService;
         this.zipExtractorService = zipExtractorService;
         this.mermaidService = mermaidService;
+        this.qualityAnalyzer = qualityAnalyzer;
     }
 
     @PostMapping(
@@ -61,5 +65,25 @@ public class AnalysisController {
         String diagram = mermaidService.generate(graph);
 
         return new MermaidResponse(diagram);
+    }
+    @PostMapping(
+        value = "/quality",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+)
+public QualityResponse analyzeQuality(
+            @RequestParam("file") MultipartFile file)
+            throws IOException {
+
+        Path projectDirectory = zipExtractorService.extract(file);
+
+        ArchitectureGraph graph =
+                analysisService.buildArchitectureGraph(projectDirectory);
+
+        QualityReport report = qualityAnalyzer.analyze(graph);
+
+        return new QualityResponse(
+            report.getArchitectureScore(),
+            report.getCoupling(),
+            report.getWarnings());
     }
 }
