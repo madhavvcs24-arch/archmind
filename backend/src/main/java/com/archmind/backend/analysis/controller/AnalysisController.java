@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import com.archmind.backend.analysis.service.ZipExtractorService;
 import com.archmind.backend.visualisation.dto.MermaidResponse;
 import com.archmind.backend.visualisation.service.MermaidService;
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/analysis")
 public class AnalysisController {
     private final MermaidService mermaidService;
@@ -81,9 +83,14 @@ public QualityResponse analyzeQuality(
 
         QualityReport report = qualityAnalyzer.analyze(graph);
 
-        return new QualityResponse(
-            report.getArchitectureScore(),
-            report.getCoupling(),
-            report.getWarnings());
+        QualityResponse response = new QualityResponse(
+        report.getArchitectureScore(),
+        report.getCoupling(),
+        report.getWarnings());
+
+        System.out.println("Score = " + report.getArchitectureScore());
+        System.out.println("Warnings = " + report.getWarnings());
+
+        return response;
     }
 }
