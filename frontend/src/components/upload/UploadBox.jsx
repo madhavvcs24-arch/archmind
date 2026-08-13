@@ -10,38 +10,76 @@ function UploadBox() {
 
   const handleAnalyze = async () => {
     if (!file) {
-        alert("Please choose a ZIP file.");
-        return;
+      alert("Please choose a ZIP file.");
+      return;
     }
 
     setLoading(true);
 
     try {
+      // -----------------------------------------
+      // Project analysis
+      // -----------------------------------------
 
-        const uploadData = new FormData();
-        uploadData.append("file", file);
+      const uploadData = new FormData();
+      uploadData.append("file", file);
 
-        const analysis = await api.post("/upload", uploadData);
+      const analysis = await api.post(
+        "/upload",
+        uploadData
+      );
 
-        const diagramData = new FormData();
-        diagramData.append("file", file);
+      // -----------------------------------------
+      // Class diagram
+      // -----------------------------------------
 
-        const diagram = await api.post("/diagram", diagramData);
+      const diagramData = new FormData();
+      diagramData.append("file", file);
 
-        const qualityData = new FormData();
-        qualityData.append("file", file);
+      const diagram = await api.post(
+        "/diagram",
+        diagramData
+      );
 
-        const quality = await api.post("/quality", qualityData);
+      // -----------------------------------------
+      // Package diagram
+      // -----------------------------------------
 
-        navigate("/result", {
+      const packageDiagramData = new FormData();
+      packageDiagramData.append("file", file);
+
+      const packageDiagram = await api.post(
+        "/package-diagram",
+        packageDiagramData
+      );
+
+      // -----------------------------------------
+      // Quality analysis
+      // -----------------------------------------
+
+      const qualityData = new FormData();
+      qualityData.append("file", file);
+
+      const quality = await api.post(
+        "/quality",
+        qualityData
+      );
+
+      // -----------------------------------------
+      // Go to result page
+      // -----------------------------------------
+
+      navigate("/result", {
         state: {
-            analysis: analysis.data,
-            diagram: diagram.data,
-            quality: quality.data,
+          analysis: analysis.data,
+          diagram: diagram.data,
+          packageDiagram: packageDiagram.data,
+          quality: quality.data,
         },
-        });
+      });
 
-    }catch (err) {
+    } catch (err) {
+
       console.error("FULL ERROR:", err);
 
       if (err.response) {
@@ -54,11 +92,11 @@ function UploadBox() {
       }
 
       alert("Analysis failed.");
+
+    } finally {
+      setLoading(false);
     }
-    finally {
-        setLoading(false);
-    }
-    };
+  };
 
   return (
     <div className="card shadow p-4">
@@ -71,7 +109,9 @@ function UploadBox() {
         type="file"
         accept=".zip"
         className="form-control mb-3"
-        onChange={(e) => setFile(e.target.files[0])}
+        onChange={(e) =>
+          setFile(e.target.files[0])
+        }
       />
 
       <button
@@ -79,7 +119,9 @@ function UploadBox() {
         onClick={handleAnalyze}
         disabled={loading}
       >
-        {loading ? "Analyzing..." : "Analyze Project"}
+        {loading
+          ? "Analyzing..."
+          : "Analyze Project"}
       </button>
 
     </div>

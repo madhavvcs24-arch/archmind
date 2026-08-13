@@ -41,7 +41,15 @@ function ResultPage() {
 
         if (diagramRef.current) {
           diagramRef.current.innerHTML = svg;
+          const renderedSvg = diagramRef.current.querySelector("svg");
+
+          if (renderedSvg) {
+            renderedSvg.style.width = "100%";
+            renderedSvg.style.height = "auto";
+            renderedSvg.style.maxWidth = "none";
+          }
         }
+        
       } catch (error) {
         console.error("Mermaid rendering failed:", error);
 

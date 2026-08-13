@@ -20,11 +20,13 @@ import com.archmind.backend.analysis.service.AnalysisService;
 import com.archmind.backend.analysis.service.ZipExtractorService;
 import com.archmind.backend.visualisation.dto.MermaidResponse;
 import com.archmind.backend.visualisation.service.MermaidService;
+import com.archmind.backend.visualisation.service.PackageMermaidService;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/analysis")
 public class AnalysisController {
     private final MermaidService mermaidService;
+    private final PackageMermaidService packageMermaidService;
     private final AnalysisService analysisService;
     private final ZipExtractorService zipExtractorService;
     private final ArchitectureQualityAnalyzer qualityAnalyzer;
@@ -32,12 +34,13 @@ public class AnalysisController {
             AnalysisService analysisService,
             ZipExtractorService zipExtractorService,
             MermaidService mermaidService,
+            PackageMermaidService packageMermaidService,
             ArchitectureQualityAnalyzer qualityAnalyzer) {
-
         this.analysisService = analysisService;
         this.zipExtractorService = zipExtractorService;
         this.mermaidService = mermaidService;
         this.qualityAnalyzer = qualityAnalyzer;
+        this.packageMermaidService = packageMermaidService; 
     }
 
     @PostMapping(
@@ -65,6 +68,25 @@ public class AnalysisController {
                 analysisService.buildArchitectureGraph(projectDirectory);
 
         String diagram = mermaidService.generate(graph);
+
+        return new MermaidResponse(diagram);
+    }
+    @PostMapping(
+            value = "/package-diagram",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public MermaidResponse generatePackageDiagram(
+            @RequestParam("file") MultipartFile file)
+            throws IOException {
+
+        Path projectDirectory =
+                zipExtractorService.extract(file);
+
+        ArchitectureGraph graph =
+                analysisService.buildArchitectureGraph(projectDirectory);
+
+        String diagram =
+                packageMermaidService.generate(graph);
 
         return new MermaidResponse(diagram);
     }
