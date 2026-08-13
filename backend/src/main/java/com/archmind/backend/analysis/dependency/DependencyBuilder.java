@@ -20,7 +20,10 @@ public class DependencyBuilder {
             projectClassNames.add(projectClass.getClassName());
         }
 
+        // -----------------------------------------
         // EXTENDS
+        // -----------------------------------------
+
         if (classNode.getParentClass() != null
                 && isProjectClass(
                         classNode.getParentClass(),
@@ -35,7 +38,10 @@ public class DependencyBuilder {
             );
         }
 
+        // -----------------------------------------
         // IMPLEMENTS
+        // -----------------------------------------
+
         for (String interfaceName :
                 classNode.getImplementedInterfaces()) {
 
@@ -53,39 +59,62 @@ public class DependencyBuilder {
             }
         }
 
+        // -----------------------------------------
         // IMPORTS
-        for (String importName :
-                classNode.getImports()) {
+        // -----------------------------------------
 
-            if (isProjectClass(
-                    importName,
-                    projectClassNames)) {
+        for (String importName : classNode.getImports()) {
 
-                String targetClass = getSimpleName(importName);
+            String importedClass =
+                    getSimpleName(importName);
 
-                graph.addDependency(
-                        new DependencyEdge(
-                                classNode.getClassName(),
-                                targetClass,
-                                "IMPORT"
-                        )
-                );
+            // Only keep imports that belong
+            // to classes in the uploaded project.
+            if (!projectClassNames.contains(importedClass)) {
+                continue;
             }
+
+            // Prevent self-dependencies.
+            if (classNode.getClassName()
+                    .equals(importedClass)) {
+                continue;
+            }
+
+            graph.addDependency(
+                    new DependencyEdge(
+                            classNode.getClassName(),
+                            importedClass,
+                            "IMPORT"
+                    )
+            );
         }
     }
+
+    // -----------------------------------------
+    // Check whether a dependency belongs
+    // to the uploaded project
+    // -----------------------------------------
 
     private boolean isProjectClass(
             String dependency,
             Set<String> projectClassNames) {
 
-        if (dependency == null || dependency.isBlank()) {
+        if (dependency == null
+                || dependency.isBlank()) {
+
             return false;
         }
 
-        String simpleName = getSimpleName(dependency);
+        String simpleName =
+                getSimpleName(dependency);
 
         return projectClassNames.contains(simpleName);
     }
+
+    // -----------------------------------------
+    // Convert fully qualified class name
+    // to simple class name
+    // -----------------------------------------
 
     private String getSimpleName(String name) {
 

@@ -3,6 +3,10 @@ import { useLocation, Navigate } from "react-router-dom";
 import { FaFolderOpen, FaCube, FaProjectDiagram } from "react-icons/fa";
 import { CircularProgressbar } from "react-circular-progressbar";
 import mermaid from "mermaid";
+import {
+  TransformWrapper,
+  TransformComponent,
+} from "react-zoom-pan-pinch";
 
 import "react-circular-progressbar/dist/styles.css";
 
@@ -241,21 +245,95 @@ function ResultPage() {
 
         </div>
 
+        {/* Diagram controls */}
+        <div className="mt-3 mb-2 d-flex gap-2">
 
-        {/* Rendered Mermaid diagram */}
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => {
+              document
+                .querySelector(".diagram-reset-button")
+                ?.click();
+            }}
+          >
+            Reset View
+          </button>
+
+        </div>
+
+        {/* Interactive Mermaid diagram */}
         <div
-          ref={diagramRef}
-          className="mt-4"
           style={{
             width: "100%",
-            overflowX: "auto",
-            textAlign: "center",
-            minHeight: "300px",
+            height: "600px",
+            overflow: "hidden",
+            border: "1px solid #dee2e6",
+            borderRadius: "8px",
+            background: "#ffffff",
           }}
-        />
+        >
+
+          <TransformWrapper
+            initialScale={1}
+            minScale={0.4}
+            maxScale={3}
+            centerOnInit={true}
+            wheel={{
+              step: 0.1,
+            }}
+            doubleClick={{
+              disabled: true,
+            }}
+            panning={{
+              disabled: false,
+            }}
+          >
+
+            {({ resetTransform }) => (
+
+              <>
+                <button
+                  className="diagram-reset-button"
+                  style={{ display: "none" }}
+                  onClick={() => resetTransform()}
+                />
+
+                <TransformComponent
+                  wrapperStyle={{
+                    width: "100%",
+                    height: "100%",
+                  }}
+                  contentStyle={{
+                    width: "100%",
+                    minHeight: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+
+                  <div
+                    ref={diagramRef}
+                    style={{
+                      textAlign: "center",
+                    }}
+                  />
+
+                </TransformComponent>
+
+              </>
+
+            )}
+
+          </TransformWrapper>
+
+        </div>
+
+        <small className="text-muted mt-2">
+          Use the mouse wheel to zoom and drag the diagram to move it.
+        </small>
 
       </div>
-
 
       {/* Architecture Warnings */}
       <div className="card shadow-sm mt-4 p-4">
