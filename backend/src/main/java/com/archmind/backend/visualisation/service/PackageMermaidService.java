@@ -1,9 +1,7 @@
 package com.archmind.backend.visualisation.service;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -26,53 +24,49 @@ public class PackageMermaidService {
 
         for (PackageNode packageNode : graph.getPackages()) {
 
-            String packageName = packageNode.getName();
-
             for (ClassNode classNode : packageNode.getClasses()) {
 
                 classToPackage.put(
                         classNode.getClassName(),
-                        packageName
+                        packageNode.getName()
                 );
             }
         }
 
-        // Prevent duplicate package relationships
-        Set<String> packageDependencies = new HashSet<>();
-
+        // Convert class dependencies into package dependencies
         for (DependencyEdge edge : graph.getDependencies()) {
 
             String sourcePackage =
                     classToPackage.get(edge.getSource());
 
             String targetPackage =
-                    classToPackage.get(getSimpleName(edge.getTarget()));
+                    classToPackage.get(
+                            getSimpleName(edge.getTarget())
+                    );
 
-            // Ignore dependencies where we cannot identify
-            // both project packages.
+            // Ignore dependencies outside the project
             if (sourcePackage == null || targetPackage == null) {
                 continue;
             }
 
-            // Ignore dependencies within the same package
+            // Ignore dependencies inside the same package
             if (sourcePackage.equals(targetPackage)) {
                 continue;
             }
 
-            String source = sanitize(sourcePackage);
-            String target = sanitize(targetPackage);
+            String sourceId = sanitize(sourcePackage);
+            String targetId = sanitize(targetPackage);
 
-            String relationship =
-                    source + " --> " + target;
-
-            // Avoid duplicate arrows
-            if (packageDependencies.add(relationship)) {
-
-                mermaid.append(source)
-                        .append(" --> ")
-                        .append(target)
-                        .append("\n");
-            }
+            mermaid.append(sourceId)
+                    .append("[\"")
+                    .append(sourcePackage)
+                    .append("\"] -->|")
+                    .append(edge.getType())
+                    .append("| ")
+                    .append(targetId)
+                    .append("[\"")
+                    .append(targetPackage)
+                    .append("\"]\n");
         }
 
         return mermaid.toString();

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, Navigate } from "react-router-dom";
 import { FaFolderOpen, FaCube, FaProjectDiagram } from "react-icons/fa";
 import { CircularProgressbar } from "react-circular-progressbar";
@@ -13,10 +13,18 @@ import "react-circular-progressbar/dist/styles.css";
 function ResultPage() {
   const { state } = useLocation();
   const diagramRef = useRef(null);
+  const [diagramView, setDiagramView] = useState("class");
 
   const analysis = state?.analysis;
-  const diagram = state?.diagram;
+
+  const classDiagram = state?.diagram;
+  const packageDiagram = state?.packageDiagram;
   const quality = state?.quality;
+
+  const diagram =
+    diagramView === "class"
+      ? classDiagram
+      : packageDiagram;
 
   // Render Mermaid diagram
   useEffect(() => {
@@ -244,12 +252,38 @@ function ResultPage() {
             Architecture Diagram
           </h3>
 
-          <button
-            className="btn btn-primary"
-            onClick={downloadDiagram}
-          >
-            Download Diagram
-          </button>
+          <div className="d-flex gap-2">
+
+            <button 
+              className={
+                diagramView === "class"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDiagramView("class")}
+            >
+              Class View
+            </button>
+
+            <button
+              className={
+                diagramView === "package"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDiagramView("package")}
+            >
+              Package View
+            </button>
+
+            <button
+              className="btn btn-primary"
+              onClick={downloadDiagram}
+            >
+              Download Diagram
+            </button>
+
+          </div>
 
         </div>
 
