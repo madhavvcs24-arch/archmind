@@ -14,9 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.archmind.backend.analysis.dto.AnalysisResult;
 import com.archmind.backend.analysis.dto.QualityResponse;
 import com.archmind.backend.analysis.graph.ArchitectureGraph;
+import com.archmind.backend.analysis.model.ProjectType;
 import com.archmind.backend.analysis.quality.ArchitectureQualityAnalyzer;
 import com.archmind.backend.analysis.quality.QualityReport;
 import com.archmind.backend.analysis.service.AnalysisService;
+import com.archmind.backend.analysis.service.ProjectTypeDetector;
 import com.archmind.backend.analysis.service.ZipExtractorService;
 import com.archmind.backend.visualisation.dto.MermaidResponse;
 import com.archmind.backend.visualisation.service.MermaidService;
@@ -30,13 +32,16 @@ public class AnalysisController {
     private final AnalysisService analysisService;
     private final ZipExtractorService zipExtractorService;
     private final ArchitectureQualityAnalyzer qualityAnalyzer;
+    private final ProjectTypeDetector projectTypeDetector;
     public AnalysisController(
             AnalysisService analysisService,
+            ProjectTypeDetector projectTypeDetector,
             ZipExtractorService zipExtractorService,
             MermaidService mermaidService,
             PackageMermaidService packageMermaidService,
             ArchitectureQualityAnalyzer qualityAnalyzer) {
         this.analysisService = analysisService;
+        this.projectTypeDetector = projectTypeDetector;
         this.zipExtractorService = zipExtractorService;
         this.mermaidService = mermaidService;
         this.qualityAnalyzer = qualityAnalyzer;
@@ -52,6 +57,9 @@ public class AnalysisController {
             throws IOException {
 
         Path projectDirectory = zipExtractorService.extract(file);
+        ProjectType type = projectTypeDetector.detect(projectDirectory);
+
+        System.out.println("Detected project type: " + type);
 
         return analysisService.analyzeProject(projectDirectory);
     }

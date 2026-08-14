@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -13,31 +14,48 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ZipExtractorService {
 
-    /**
-     * Extracts an uploaded ZIP file into a temporary directory.
-     */
     public Path extract(MultipartFile zipFile) throws IOException {
 
         Path tempDirectory = Files.createTempDirectory("archmind-");
 
-        try (InputStream inputStream = zipFile.getInputStream();
-             ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
+        try (
+                InputStream inputStream = zipFile.getInputStream();
+                ZipInputStream zipInputStream = new ZipInputStream(inputStream)
+        ) {
 
             ZipEntry entry;
 
             while ((entry = zipInputStream.getNextEntry()) != null) {
 
-                Path outputPath = tempDirectory.resolve(entry.getName());
+                System.out.println("--------------------------------");
+                System.out.println("ENTRY      : " + entry.getName());
+                System.out.println("DIRECTORY? : " + entry.isDirectory());
+
+                Path outputPath = tempDirectory.resolve(entry.getName()).normalize();
+
+                System.out.println("OUTPUT PATH: " + outputPath);
+
+                // Zip Slip protection
+                if (!outputPath.startsWith(tempDirectory)) {
+                    throw new IOException("Invalid ZIP entry: " + entry.getName());
+                }
 
                 if (entry.isDirectory()) {
+
+                    System.out.println("Creating directory...");
                     Files.createDirectories(outputPath);
+
                 } else {
 
-                    if (outputPath.getParent() != null) {
-                        Files.createDirectories(outputPath.getParent());
-                    }
+                    System.out.println("Creating parent...");
+                    Files.createDirectories(outputPath.getParent());
 
-                    Files.copy(zipInputStream, outputPath);
+                    System.out.println("Copying file...");
+                    Files.copy(
+                            zipInputStream,
+                            outputPath,
+                            StandardCopyOption.REPLACE_EXISTING
+                    );
                 }
 
                 zipInputStream.closeEntry();
