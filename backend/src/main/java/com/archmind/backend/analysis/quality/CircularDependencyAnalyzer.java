@@ -16,6 +16,7 @@ public class CircularDependencyAnalyzer {
 
         Map<String, List<String>> adjacency = new HashMap<>();
 
+        // Build adjacency list
         for (DependencyEdge edge : graph.getDependencies()) {
 
             adjacency
@@ -28,13 +29,15 @@ public class CircularDependencyAnalyzer {
 
         Set<String> uniqueCycles = new HashSet<>();
 
+        // Start DFS from every node
         for (String node : adjacency.keySet()) {
 
-            detect(
+            detectCycle(
                     node,
                     node,
                     adjacency,
                     new ArrayList<>(),
+                    new HashSet<>(),
                     uniqueCycles
             );
         }
@@ -42,20 +45,23 @@ public class CircularDependencyAnalyzer {
         return new ArrayList<>(uniqueCycles);
     }
 
-    private void detect(
+    private void detectCycle(
             String start,
             String current,
             Map<String, List<String>> graph,
             List<String> path,
+            Set<String> visited,
             Set<String> cycles) {
 
         path.add(current);
+        visited.add(current);
 
         List<String> neighbours =
                 graph.getOrDefault(current, List.of());
 
         for (String next : neighbours) {
 
+            // We returned to the starting node
             if (next.equals(start) && path.size() > 1) {
 
                 cycles.add(
@@ -65,13 +71,16 @@ public class CircularDependencyAnalyzer {
                 continue;
             }
 
-            if (!path.contains(next)) {
+            // Continue DFS only if node is not already
+            // present in the current path
+            if (!visited.contains(next)) {
 
-                detect(
+                detectCycle(
                         start,
                         next,
                         graph,
                         new ArrayList<>(path),
+                        new HashSet<>(visited),
                         cycles
                 );
             }
@@ -80,15 +89,26 @@ public class CircularDependencyAnalyzer {
 
     private String normalizeCycle(List<String> path) {
 
-        List<String> cycle =
-                new ArrayList<>(path);
+        /*
+         * Example:
+         *
+         * A -> B -> C
+         *
+         * B -> C -> A
+         *
+         * C -> A -> B
+         *
+         * All become:
+         *
+         * A -> B -> C -> A
+         */
 
         int smallestIndex = 0;
 
-        for (int i = 1; i < cycle.size(); i++) {
+        for (int i = 1; i < path.size(); i++) {
 
-            if (cycle.get(i).compareTo(
-                    cycle.get(smallestIndex)) < 0) {
+            if (path.get(i).compareTo(
+                    path.get(smallestIndex)) < 0) {
 
                 smallestIndex = i;
             }
@@ -97,12 +117,12 @@ public class CircularDependencyAnalyzer {
         List<String> normalized =
                 new ArrayList<>();
 
-        for (int i = 0; i < cycle.size(); i++) {
+        for (int i = 0; i < path.size(); i++) {
 
             normalized.add(
-                    cycle.get(
+                    path.get(
                             (smallestIndex + i)
-                                    % cycle.size()
+                                    % path.size()
                     )
             );
         }
@@ -112,4 +132,4 @@ public class CircularDependencyAnalyzer {
                 normalized
         ) + " -> " + normalized.get(0);
     }
-}
+}   

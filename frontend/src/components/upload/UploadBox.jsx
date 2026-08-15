@@ -27,7 +27,12 @@ function UploadBox() {
       uploadData.append("file", file);
 
       console.log("Calling /upload...");
-      const analysis = await api.post("/upload", uploadData);
+
+      const analysis = await api.post(
+        "/upload",
+        uploadData
+      );
+
       console.log("✅ /upload SUCCESS");
       console.log(analysis.data);
 
@@ -38,7 +43,12 @@ function UploadBox() {
       diagramData.append("file", file);
 
       console.log("Calling /diagram...");
-      const diagram = await api.post("/diagram", diagramData);
+
+      const diagram = await api.post(
+        "/diagram",
+        diagramData
+      );
+
       console.log("✅ /diagram SUCCESS");
       console.log(diagram.data);
 
@@ -49,12 +59,30 @@ function UploadBox() {
       packageDiagramData.append("file", file);
 
       console.log("Calling /package-diagram...");
+
       const packageDiagram = await api.post(
         "/package-diagram",
         packageDiagramData
       );
+
       console.log("✅ /package-diagram SUCCESS");
       console.log(packageDiagram.data);
+
+      // -----------------------------------------
+      // Dependency graph
+      // -----------------------------------------
+      const dependencyData = new FormData();
+      dependencyData.append("file", file);
+
+      console.log("Calling /dependencies...");
+
+      const dependencies = await api.post(
+        "/dependencies",
+        dependencyData
+      );
+
+      console.log("✅ /dependencies SUCCESS");
+      console.log(dependencies.data);
 
       // -----------------------------------------
       // Quality analysis
@@ -63,10 +91,40 @@ function UploadBox() {
       qualityData.append("file", file);
 
       console.log("Calling /quality...");
-      const quality = await api.post("/quality", qualityData);
+
+      const quality = await api.post(
+        "/quality",
+        qualityData
+      );
+
       console.log("✅ /quality SUCCESS");
+      console.log("Quality response:");
       console.log(quality.data);
 
+      // Check the new quality fields
+      console.log(
+        "Architecture Score:",
+        quality.data.architectureScore
+      );
+
+      console.log(
+        "Score Breakdown:",
+        quality.data.scoreBreakdown
+      );
+
+      console.log(
+        "Warnings:",
+        quality.data.warnings
+      );
+
+      console.log(
+        "Recommendations:",
+        quality.data.recommendations
+      );
+
+      // -----------------------------------------
+      // Navigate to result page
+      // -----------------------------------------
       console.log("Navigating to Result page...");
 
       navigate("/result", {
@@ -74,6 +132,11 @@ function UploadBox() {
           analysis: analysis.data,
           diagram: diagram.data,
           packageDiagram: packageDiagram.data,
+          dependencies: dependencies.data,
+
+          // Pass the COMPLETE quality response
+          // including scoreBreakdown, warnings,
+          // recommendations, coupling and score.
           quality: quality.data,
         },
       });
@@ -87,9 +150,11 @@ function UploadBox() {
         console.log("Status:", err.response.status);
         console.log("URL:", err.config?.url);
         console.log("Response:", err.response.data);
+
       } else if (err.request) {
         console.log("No response received from server.");
         console.log(err.request);
+
       } else {
         console.log("Message:", err.message);
       }
@@ -105,13 +170,18 @@ function UploadBox() {
 
   return (
     <div className="card shadow p-4">
-      <h3 className="mb-4">Upload Java Project</h3>
+
+      <h3 className="mb-4">
+        Upload Java Project
+      </h3>
 
       <input
         type="file"
         accept=".zip"
         className="form-control mb-3"
-        onChange={(e) => setFile(e.target.files[0])}
+        onChange={(e) => {
+          setFile(e.target.files[0]);
+        }}
       />
 
       <button
@@ -119,8 +189,11 @@ function UploadBox() {
         onClick={handleAnalyze}
         disabled={loading}
       >
-        {loading ? "Analyzing..." : "Analyze Project"}
+        {loading
+          ? "Analyzing..."
+          : "Analyze Project"}
       </button>
+
     </div>
   );
 }

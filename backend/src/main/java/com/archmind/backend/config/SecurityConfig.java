@@ -2,6 +2,7 @@ package com.archmind.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -31,15 +32,34 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public authentication endpoints
                         .requestMatchers(
-                                "/api/v1/auth/**",
-                                "/api/v1/analysis/**",
+                                "/api/v1/auth/**"
+                        ).permitAll()
+
+                        // Public health endpoint
+                        .requestMatchers(
                                 "/api/v1/health"
                         ).permitAll()
+
+                        // Public analysis endpoints
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/analysis/upload",
+                                "/api/v1/analysis/diagram",
+                                "/api/v1/analysis/package-diagram",
+                                "/api/v1/analysis/quality",
+                                "/api/v1/analysis/dependencies"
+                        ).permitAll()
+
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
 

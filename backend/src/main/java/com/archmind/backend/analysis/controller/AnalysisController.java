@@ -12,41 +12,45 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.archmind.backend.analysis.dto.AnalysisResult;
+import com.archmind.backend.analysis.dto.DependencyGraphResponse;
 import com.archmind.backend.analysis.dto.QualityResponse;
 import com.archmind.backend.analysis.graph.ArchitectureGraph;
-import com.archmind.backend.analysis.model.ProjectType;
 import com.archmind.backend.analysis.quality.ArchitectureQualityAnalyzer;
 import com.archmind.backend.analysis.quality.QualityReport;
 import com.archmind.backend.analysis.service.AnalysisService;
-import com.archmind.backend.analysis.service.ProjectTypeDetector;
 import com.archmind.backend.analysis.service.ZipExtractorService;
 import com.archmind.backend.visualisation.dto.MermaidResponse;
 import com.archmind.backend.visualisation.service.MermaidService;
 import com.archmind.backend.visualisation.service.PackageMermaidService;
+
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/analysis")
 public class AnalysisController {
+
     private final MermaidService mermaidService;
     private final PackageMermaidService packageMermaidService;
     private final AnalysisService analysisService;
     private final ZipExtractorService zipExtractorService;
     private final ArchitectureQualityAnalyzer qualityAnalyzer;
-    private final ProjectTypeDetector projectTypeDetector;
+
     public AnalysisController(
             AnalysisService analysisService,
-            ProjectTypeDetector projectTypeDetector,
             ZipExtractorService zipExtractorService,
             MermaidService mermaidService,
             PackageMermaidService packageMermaidService,
             ArchitectureQualityAnalyzer qualityAnalyzer) {
+
         this.analysisService = analysisService;
-        this.projectTypeDetector = projectTypeDetector;
         this.zipExtractorService = zipExtractorService;
         this.mermaidService = mermaidService;
         this.qualityAnalyzer = qualityAnalyzer;
-        this.packageMermaidService = packageMermaidService; 
+        this.packageMermaidService = packageMermaidService;
     }
+
+    // -----------------------------------------
+    // Project analysis
+    // -----------------------------------------
 
     @PostMapping(
             value = "/upload",
@@ -56,29 +60,40 @@ public class AnalysisController {
             @RequestParam("file") MultipartFile file)
             throws IOException {
 
-        Path projectDirectory = zipExtractorService.extract(file);
-        ProjectType type = projectTypeDetector.detect(projectDirectory);
-
-        System.out.println("Detected project type: " + type);
+        Path projectDirectory =
+                zipExtractorService.extract(file);
 
         return analysisService.analyzeProject(projectDirectory);
     }
-    @PostMapping(
-        value = "/diagram",
-        consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public MermaidResponse generateDiagram(
-        @RequestParam("file") MultipartFile file)
-        throws IOException {
 
-        Path projectDirectory = zipExtractorService.extract(file);
+    // -----------------------------------------
+    // Class diagram
+    // -----------------------------------------
+
+    @PostMapping(
+            value = "/diagram",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public MermaidResponse generateDiagram(
+            @RequestParam("file") MultipartFile file)
+            throws IOException {
+
+        Path projectDirectory =
+                zipExtractorService.extract(file);
 
         ArchitectureGraph graph =
                 analysisService.buildArchitectureGraph(projectDirectory);
 
-        String diagram = mermaidService.generate(graph);
+        String diagram =
+                mermaidService.generate(graph);
 
         return new MermaidResponse(diagram);
     }
+
+    // -----------------------------------------
+    // Package diagram
+    // -----------------------------------------
+
     @PostMapping(
             value = "/package-diagram",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -98,29 +113,69 @@ public class AnalysisController {
 
         return new MermaidResponse(diagram);
     }
+
+    // -----------------------------------------
+    // Architecture quality
+    // -----------------------------------------
+
     @PostMapping(
-        value = "/quality",
-        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-)
-public QualityResponse analyzeQuality(
+            value = "/quality",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public QualityResponse analyzeQuality(
             @RequestParam("file") MultipartFile file)
             throws IOException {
 
-        Path projectDirectory = zipExtractorService.extract(file);
+        Path projectDirectory =
+                zipExtractorService.extract(file);
 
         ArchitectureGraph graph =
                 analysisService.buildArchitectureGraph(projectDirectory);
 
-        QualityReport report = qualityAnalyzer.analyze(graph);
+        QualityReport report =
+                qualityAnalyzer.analyze(graph);
 
-        QualityResponse response = new QualityResponse(
-        report.getArchitectureScore(),
-        report.getCoupling(),
-        report.getWarnings());
+        QualityResponse response =
+                new QualityResponse(
+                        report.getArchitectureScore(),
+                        report.getCoupling(),
+                        report.getWarnings(),
+                        report.getRecommendations(),
+                        report.getScoreBreakdown()
+                );
 
-        System.out.println("Score = " + report.getArchitectureScore());
-        System.out.println("Warnings = " + report.getWarnings());
+        System.out.println(
+                "Score = " + report.getArchitectureScore()
+        );
+
+        System.out.println(
+                "Warnings = " + report.getWarnings()
+        );
+        System.out.println(
+                "Score breakdown = "+ report.getScoreBreakdown()
+        );
 
         return response;
+    }
+
+    // -----------------------------------------
+    // Dependency graph
+    // -----------------------------------------
+
+    @PostMapping(
+            value = "/dependencies",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public DependencyGraphResponse generateDependencyGraph(
+            @RequestParam("file") MultipartFile file)
+            throws IOException {
+
+        Path projectDirectory =
+                zipExtractorService.extract(file);
+
+        ArchitectureGraph graph =
+                analysisService.buildArchitectureGraph(projectDirectory);
+
+        return analysisService.getDependencyGraph(graph);
     }
 }

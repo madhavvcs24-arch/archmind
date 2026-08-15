@@ -9,6 +9,7 @@ public class ClassNode {
     private String packageName;
     private String parentClass;
     private boolean isInterface;
+    private String layer;
 
     private final List<String> implementedInterfaces = new ArrayList<>();
     private final List<String> imports = new ArrayList<>();
@@ -60,11 +61,20 @@ public class ClassNode {
     public void addImport(String importName) {
         imports.add(importName);
     }
+
     public boolean isInterface() {
         return isInterface;
     }
 
     public void setInterface(boolean isInterface) {
         this.isInterface = isInterface;
+    }
+
+    public String getLayer() {
+        return layer;
+    }
+
+    public void setLayer(String layer) {
+        this.layer = layer;
     }
 }

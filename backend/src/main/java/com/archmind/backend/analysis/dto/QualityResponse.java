@@ -7,28 +7,34 @@ import java.util.Map;
 public class QualityResponse {
 
     private Map<String, Integer> coupling;
+
     private int architectureScore;
+    private List<String> scoreBreakdown = new ArrayList<>();
     private List<String> warnings = new ArrayList<>();
+
+    private List<String> recommendations = new ArrayList<>();
 
     public QualityResponse(
             int architectureScore,
             Map<String, Integer> coupling,
-            List<String> warnings) {
+            List<String> warnings,
+            List<String> recommendations,
+            List<String> scoreBreakdown) {
 
         this.architectureScore = architectureScore;
         this.coupling = coupling;
         this.warnings = warnings;
-    }
-
-    public QualityResponse(Map<String, Integer> coupling) {
-        this.coupling = coupling;
+        this.recommendations = recommendations;
+        this.scoreBreakdown = scoreBreakdown;
     }
 
     public int getArchitectureScore() {
         return architectureScore;
     }
 
-    public void setArchitectureScore(int architectureScore) {
+    public void setArchitectureScore(
+            int architectureScore) {
+
         this.architectureScore = architectureScore;
     }
 
@@ -36,7 +42,9 @@ public class QualityResponse {
         return coupling;
     }
 
-    public void setCoupling(Map<String, Integer> coupling) {
+    public void setCoupling(
+            Map<String, Integer> coupling) {
+
         this.coupling = coupling;
     }
 
@@ -44,7 +52,28 @@ public class QualityResponse {
         return warnings;
     }
 
-    public void setWarnings(List<String> warnings) {
+    public void setWarnings(
+            List<String> warnings) {
+
         this.warnings = warnings;
+    }
+
+    public List<String> getRecommendations() {
+        return recommendations;
+    }
+
+    public void setRecommendations(
+            List<String> recommendations) {
+
+        this.recommendations = recommendations;
+    }
+    public List<String> getScoreBreakdown() {
+        return scoreBreakdown;
+    }
+
+    public void setScoreBreakdown(
+            List<String> scoreBreakdown) {
+
+        this.scoreBreakdown = scoreBreakdown;
     }
 }

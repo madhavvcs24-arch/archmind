@@ -31,13 +31,19 @@ public class AnalysisService {
 
     private final ProjectScannerService scannerService;
     private final FileReaderService fileReaderService;
+    private final LayerDetector layerDetector;
+    private final CircularDependencyDetector circularDependencyDetector;
 
     public AnalysisService(
             ProjectScannerService scannerService,
-            FileReaderService fileReaderService) {
+            FileReaderService fileReaderService,
+            LayerDetector layerDetector,
+            CircularDependencyDetector circularDependencyDetector) {
 
         this.scannerService = scannerService;
         this.fileReaderService = fileReaderService;
+        this.layerDetector = layerDetector;
+        this.circularDependencyDetector = circularDependencyDetector;
     }
 
     public AnalysisResult analyzeProject(
@@ -45,6 +51,15 @@ public class AnalysisService {
 
         ArchitectureGraph graph =
                 buildArchitectureGraph(projectRoot);
+        System.out.println("Checking circular dependencies...");
+
+        var cycles = circularDependencyDetector.detect(graph);
+
+        System.out.println("Circular dependencies found: " + cycles.size());
+
+        for (var cycle : cycles) {
+                System.out.println(cycle.getCycle());
+        }
 
         return new AnalysisResult(
                 metrics.getPackageCount(graph),
@@ -95,10 +110,17 @@ public class AnalysisService {
             String source =
                     fileReaderService.readFile(file);
 
-            ClassNode classNode =
-                    parser.parse(source, graph);
+           ClassNode classNode =
+                parser.parse(source, graph);
 
-            projectClasses.add(classNode);
+        classNode.setLayer(
+                layerDetector.detect(
+                        classNode.getClassName(),
+                        classNode.getPackageName()
+                ).name()
+        );
+
+        projectClasses.add(classNode);
         }
 
         // -----------------------------------------
